@@ -1,0 +1,60 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+	<title> home page</title>
+    <link rel="stylesheet" href="{% static "locator/index.css" %}" >
+</head>
+
+<body>
+    <div id = "header">    
+    </div>
+    <div id = "side"> 
+        <input type="checkbox" id="dispMandal">Mandals
+        <input type="checkbox" id="dispVillages">Villages
+        <br><br>
+        <select name="district" id="district"></select><br><br>
+        <select name="mandal" id="mandal"></select><br><br>
+        <select name="village" id="village"></select> <br><br>
+        <button id="sub">submit</button>
+    </div>
+    <div id = "main">
+        <div id="map"></div>
+    </div>
+</body>
+
+<script>
+    
+    var jsonObject = JSON.parse('{{ json_string | escapejs }}');
+
+    var ap_districts = jsonObject['ap_districts'];
+    var apdmp_mandals = jsonObject['apdmp_mandals'];
+    var apdmp_villages = jsonObject['apdmp_villages'];
+
+    ap_districts = JSON.parse(ap_districts);
+    apdmp_mandals = JSON.parse(apdmp_mandals);
+    apdmp_villages = JSON.parse(apdmp_villages);
+
+    var districts = {};
+
+    {% for district in apdmp_districts %}
+        districts['{{district.district}}'] = {};
+    {% endfor %}
+
+    {% for mandal in apdmp_mandals %}
+        districts['{{mandal.district}}']['{{mandal.sub_distri}}'] = {};
+    {% endfor %}
+
+    {% for village in apdmp_villages %}
+        districts['{{village.district}}']['{{village.sub_distri}}']
+            ['{{village.name}}'] = null;
+    {% endfor %}
+
+
+</script>
+<script src="{% static "locator/populateForm.js" %}"></script>
+<script src="{% static "locator/map.js" %}"></script> 
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBpnHNZ7rQNVICgFljR277UJ1gG7MNkais&callback=initMap" 
+async defer></script> 
+
+
