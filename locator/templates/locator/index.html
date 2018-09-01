@@ -4,19 +4,39 @@
 <head>
 	<title> home page</title>
     <link rel="stylesheet" href="{% static "locator/index.css" %}" >
+    <script src="{% static "locator/populateForm.js" %}"></script>
+    <script src="{% static "locator/jquery-3.2.1.min.js" %}"></script>
+    <script src="{% static "locator/ajaxSetup.js" %}"></script>
 </head>
 
 <body>
-    <div id = "header">    
+    <div id = "header"> 
+        <h1>APDMP Project Location</h1>   
     </div>
     <div id = "side"> 
-        <input type="checkbox" id="dispMandal">Mandals
-        <input type="checkbox" id="dispVillages">Villages
-        <br><br>
-        <select name="district" id="district"></select><br><br>
-        <select name="mandal" id="mandal"></select><br><br>
-        <select name="village" id="village"></select> <br><br>
+        <input type="radio" name="type" value="0" checked>Mandals
+        <input type="radio" name="type" value="1">Villages
+        <br><br><br>
+        District: 
+        <select name="district" id="district">
+            <option value="">None</option>
+        </select><br><br>
+        Mandal: <select name="mandal" id="mandal">
+            <option value="">None</option>
+        </select><br><br>
+        Village: <select name="village" id="village">
+            <option value="">None</option>
+        </select> <br><br><br><br>
+        LFA: <select name="lfa" id="lfa">
+            <option value="">None</option>
+        </select><br><br>
+        FA: <select name="fa" id="fa">
+            <option value="">None</option>
+        </select><br><br>
+
         <button id="sub">submit</button>
+        <button id="reset">reset</button>
+
     </div>
     <div id = "main">
         <div id="map"></div>
@@ -24,37 +44,39 @@
 </body>
 
 <script>
+    var jsonString = "{{ to_send | safe }}";
+    jsonString = jsonString.replace(/'/g, '"');
+    jsonObject = JSON.parse(jsonString); 
     
-    var jsonObject = JSON.parse('{{ json_string | escapejs }}');
+    var districts = jsonObject.districts;
+    var lfas = jsonObject.lfa; 
 
-    var ap_districts = jsonObject['ap_districts'];
-    var apdmp_mandals = jsonObject['apdmp_mandals'];
-    var apdmp_villages = jsonObject['apdmp_villages'];
+    populateDistricts(districts);
+    
+    var district_node = document.getElementById('district');
+    district_node.onchange = function() {
+        console.log(this.value)
+        populateMandals(districts[this.value]);
+        populateVillages([]);
+    };
 
-    ap_districts = JSON.parse(ap_districts);
-    apdmp_mandals = JSON.parse(apdmp_mandals);
-    apdmp_villages = JSON.parse(apdmp_villages);
+    var mandal_node = document.getElementById('mandal');
+    mandal_node.onchange = function() {
+        console.log("IN");
+        var district_node_value = document.getElementById('district').value;
+        populateVillages(districts[district_node_value][this.value]);
+    };
 
-    var districts = {};
+    populateLFA(lfas);
 
-    {% for district in apdmp_districts %}
-        districts['{{district.district}}'] = {};
-    {% endfor %}
-
-    {% for mandal in apdmp_mandals %}
-        districts['{{mandal.district}}']['{{mandal.sub_distri}}'] = {};
-    {% endfor %}
-
-    {% for village in apdmp_villages %}
-        districts['{{village.district}}']['{{village.sub_distri}}']
-            ['{{village.name}}'] = null;
-    {% endfor %}
-
+    var lfa_node = document.getElementById('lfa');
+    lfa_node.onchange = function() {
+        populateFA(lfas[this.value]);
+    };
 
 </script>
-<script src="{% static "locator/populateForm.js" %}"></script>
-<script src="{% static "locator/map.js" %}"></script> 
+
+
+<script src="{% static "locator/map.js" %}"></script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBpnHNZ7rQNVICgFljR277UJ1gG7MNkais&callback=initMap" 
-async defer></script> 
-
-
+async defer></script>

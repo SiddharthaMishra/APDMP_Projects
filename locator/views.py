@@ -1,36 +1,71 @@
 from django.shortcuts import render
-from django.views.generic import TemplateView
+from django.http import HttpResponse
 from .models import APDMP_Districts, APDMP_Mandals, APDMP_Villages, AP_Districts
 from django.core.serializers import serialize
 import json
 
+
+
 # Create your views here.
 
-class IndexView(TemplateView):
-    template_name = 'locator/index.html'
-
-    def get_context_data(self, **kwargs):
-        context = super(IndexView, self).get_context_data(**kwargs)
-        context['apdmp_districts'] = APDMP_Districts.objects.all()
-        context['apdmp_mandals'] = APDMP_Mandals.objects.all()
-        context['apdmp_villages'] = APDMP_Villages.objects.all()
-        context['ap_districts'] = AP_Districts.objects.all()
-        return context
-
 def index(request):
-    data = {}
-    data['apdmp_mandals'] = APDMP_Mandals.objects.all()
-    data['apdmp_villages'] = APDMP_Villages.objects.all()
-    data['ap_districts'] = AP_Districts.objects.all()
-    
-    for key, value in data.items():
-        data[key] = serialize('geojson', value, geometry_field="geom")
-    
-    to_send = json.dumps(data)
+	lfa = {}
+	districts = {}
 
-    return render(request, "locator/index.html", {
-        'json_string': to_send,
-        'apdmp_mandals': APDMP_Mandals.objects.all(),
-        'apdmp_villages': APDMP_Villages.objects.all(),
-        'apdmp_districts': APDMP_Districts.objects.all(),
-        })
+	villages = APDMP_Villages.objects.all()
+
+	for village in villages:
+		if village.lfa not in lfa:
+			lfa[village.lfa] = [village.fa]
+		
+		if village.fa not in lfa[village.lfa]:
+			lfa[village.lfa].append(village.fa)
+		
+		if village.district in districts:
+			if village.sub_distri in districts[village.district]:
+				districts[village.district][village.sub_distri].append(village.name)
+			else:
+				districts[village.district][village.sub_distri] = [village.name]
+		else:
+			districts[village.district] = {village.sub_distri:[village.name]} 
+	
+	to_send = {
+		"districts" : districts,
+		"lfa": lfa,
+	}
+
+	json.dumps(to_send)
+
+	return render(request, "locator/index.html", {"to_send": to_send})
+			
+def get_geom(request):
+
+    request_type = request.POST['type']
+    if request_type == '0':
+        obj = APDMP_Mandals
+    else:
+        obj = APDMP_Villages
+
+    if request.POST['fa']:
+        areas = obj.objects.filter(fa=request.POST['fa'])    
+    else:
+        areas = obj.objects.filter(lfa=request.POST['lfa'])
+    
+    if request_type != '0' and request.POST['village']:
+        areas = areas.filter(name=request.POST['village'])
+    elif request.POST['mandal']:
+        areas = areas.filter(sub_distri=request.POST['mandal'])
+    elif request.POST['district']:
+        areas = areas.filter(district=request.POST['district'])
+
+    if areas:
+        to_send = serialize('geojson', areas, geometry_field='geom')
+        return HttpResponse(to_send, content_type="application/json")
+    else:
+        return HttpResponse("")
+
+def get_border(request):
+    to_send = serialize('geojson', AP_Districts.objects.all(), geometry_field='geom')
+    return HttpResponse(to_send, content_type="application/json")
+
+    

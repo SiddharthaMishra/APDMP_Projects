@@ -3,92 +3,100 @@ function initMap() {
     map = new google.maps.Map(document.getElementById('map'), {
         center: {lat: 15.9129, lng: 81.7400},
         zoom: 6.5,
+        mapTypeId: 'satellite',
     });
     
-    var defaultMap = new google.maps.Data();
-
-    //console.log()
-
-    defaultMap.addGeoJson(ap_districts);
-    defaultMap.setStyle({
-        fillColor: 'green',
-        strokeWeight: 0.25
-    });
-
-    defaultMap.setMap(map); 
-
-    var mandalMap = new google.maps.Data();
-
-    mandalMap.addGeoJson(apdmp_mandals);
-    mandalMap.setStyle({
-        fillColor: 'blue',
-        strokeWeight: 0.5
-    });
-
-    var villageMap = new google.maps.Data();
-
-    villageMap.addGeoJson(apdmp_villages);
-    villageMap.setStyle({
+    map.data.setStyle({
         fillColor: 'red',
         strokeWeight: 1,
+        fillOpacity: 0.1,
     });
 
-    var pointMap = new google.maps.Data();
 
-    google.maps.event.addDomListener(document.getElementById('dispMandal'), 
-        'change', function() {   
-        if(document.getElementById('dispMandal').checked) {
-            mandalMap.setMap(map);
-        } else {
-            mandalMap.setMap(null);
-        }
+    $.ajax({
+        url : "getborder",
+        type : "POST",
+        cache : false,
+        success : function(res){
+            var dl = new google.maps.Data({map:map});
+            dl.addGeoJson(res);
+            dl.setStyle({
+                strokeWeight: 0.5,
+            });
+        },
+        fail : function(e) {
+            alert(e);
+        } 
     });
-
-    google.maps.event.addDomListener(document.getElementById('dispVillages'), 
-        'change', function() {   
-        if(document.getElementById('dispVillages').checked) {
-            villageMap.setMap(map);
-        } else {
-            villageMap.setMap(null);
-        }
-    });
-
-    var current_marker = new google.maps.Marker();
-
+      
     google.maps.event.addDomListener(document.getElementById('sub'), 
-        'click', function() {   
-        var village = document.getElementById('village');
-        pointMap.setMap(null);
-        current_marker.setMap(null);
-        pointMap =  new google.maps.Data();
+        'click', function() {
 
-        for(let i=0; i<apdmp_villages['features'].length; i++) {
-            if(apdmp_villages['features'][i]['properties']['name'] == village.value) {
-                var village_feature = apdmp_villages['features'][i];
-                break;
-            }
-        }
-        console.log(village_feature);
-        var max_coordinates = village_feature['geometry']['coordinates'][0][0].reduce(function(a,b){
-            return [a[0] > b[0] ? a[0] : b[0], a[1] > b[1] ? a[1] : b[1]];
-        });
-        var min_coordinates = village_feature['geometry']['coordinates'][0][0].reduce(function(a,b){
-            return [a[0] < b[0] ? a[0] : b[0], a[1] < b[1] ? a[1] : b[1]];
-        });
-
-        var coords = [(max_coordinates[0] + min_coordinates[0])/2,
-            (max_coordinates[1] + min_coordinates[1])/2];
         
-        console.log(coords);
+        var district = document.getElementById('district').value;
+        var mandal = document.getElementById('mandal').value;
+        var village = document.getElementById('village').value;
+        var lfa = document.getElementById('lfa').value;
+        var fa = document.getElementById('fa').value;
 
-        current_marker =  AddMarker(coords[1], coords[0]);
 
-        pointMap.addGeoJson(village_feature);
-        pointMap.setStyle({
-            fillColor: 'gold',
-            strokeWeight: 2,
+        if(lfa.value == "") {
+            alert("Please Select LFA");
+            return;
+        } else {
+
+            $.ajax({
+                url : "getareas",
+                type : "POST",
+                data : {
+                    type : document.querySelector('input[name="type"]:checked').value,
+                    district,
+                    mandal,
+                    village,
+                    lfa,
+                    fa,
+                }, 
+                cache : false,
+                success : function(res){
+                    map.data.forEach(function(feature) {
+                        map.data.remove(feature);
+                    });
+                    if(res == "") {
+                        alert("No areas found");
+                    } else {
+                        map.data.addGeoJson(res);
+                        var point = res.features.reduce(function(current, a){
+                            return [current[0] + a.geometry.coordinates[0][0][0][0],
+                                current[1] + a.geometry.coordinates[0][0][0][1]];
+                        },[0,0]);
+                        point[0] /= res.features.length;
+                        point[1] /= res.features.length;
+                        map.setZoom(6.5);
+                        map.panTo(new google.maps.LatLng(15.9129, 81.7400));
+                        map.setZoom(8.5);
+                        map.panTo(new google.maps.LatLng(point[1], point[0]));
+                    }
+                    map.data.setMap(map);
+                },
+                fail : function(e) {
+                    alert(e);
+                } 
+            });
+        }
+    });
+
+    google.maps.event.addDomListener(document.getElementById('reset'), 
+        'click', function() {
+        map.data.forEach(function(feature) {
+            map.data.remove(feature);
         });
-        pointMap.setMap(map);
+        map.panTo(new google.maps.LatLng(15.9129, 81.7400));
+        map.setZoom(6.5);
+        var district = document.getElementById('district').value = "";
+        var mandal = document.getElementById('mandal').value = "";
+        var village = document.getElementById('village').value = "";
+        var lfa = document.getElementById('lfa').value = "";
+        var fa = document.getElementById('fa').value = "";
     });
 }
 

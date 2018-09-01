@@ -5,4 +5,6 @@ app_name = 'locator'
 
 urlpatterns = [
     path('', views.index),
+    path('getareas', views.get_geom),
+    path('getborder', views.get_border)
 ]

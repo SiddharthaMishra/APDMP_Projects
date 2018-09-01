@@ -1,59 +1,55 @@
-function populateDistricts() {
+function createOption(text, value) {
+    if (value == undefined) value = text;
+    var option = document.createElement("option");
+    option.text = text;
+    option.value = value;
+    return option;
+}
+
+function populateDistricts(districts) {
     var dropdown = document.getElementById('district');
-    Object.keys(districts).forEach(function(key){
-        var option = document.createElement('option');
-        option.text = key;
-        option.value = key;
-        dropdown.appendChild(option); 
-    });
+    
+    for (var key in districts)
+        dropdown.appendChild(createOption(key));
 }
 
-function populateMandals() {
+function populateMandals(district) {
     var dropdown = document.getElementById('mandal');
-    var district = document.getElementById('district').value;
-    
     while (dropdown.firstChild) {
         dropdown.removeChild(dropdown.firstChild);
     }
-
-    Object.keys(districts[district]).forEach(function(key){
-        var option = document.createElement('option');
-        option.text = key;
-        option.value = key;
-        dropdown.appendChild(option); 
-    });
+    dropdown.appendChild(createOption("None", ""));
+    for (var mandal in district) {
+        dropdown.appendChild(createOption(mandal));
+    }
 }
 
-function populateVillages() {
+function populateVillages(mandal) {
+    console.log(mandal);
     var dropdown = document.getElementById('village');
-    var district = document.getElementById('district').value;
-    var mandal = document.getElementById('mandal').value;
-    
     while (dropdown.firstChild) {
         dropdown.removeChild(dropdown.firstChild);
     }
-
-    Object.keys(districts[district][mandal]).forEach(function(key){
-        var option = document.createElement('option');
-        option.text = key;
-        option.value = key;
-        dropdown.appendChild(option); 
-    });
+    dropdown.appendChild(createOption("None", ""));
+    for (var village in mandal) {
+        dropdown.appendChild(createOption(mandal[village]));
+    }
 }
 
-populateDistricts();
-populateMandals();
-populateVillages();
-
-var districtDrop = document.getElementById('district');
-
-districtDrop.onchange = function() {
-    populateMandals();
-    populateVillages();
+function populateLFA(lfas) {
+    var dropdown = document.getElementById('lfa');
+    
+    for (var key in lfas)
+        dropdown.appendChild(createOption(key));
 }
 
-var mandalDrop = document.getElementById('mandal');
-
-mandalDrop.onchange = function() {
-    populateVillages();
+function populateFA(lfa) {
+    var dropdown = document.getElementById('fa');
+    while (dropdown.firstChild) {
+        dropdown.removeChild(dropdown.firstChild);
+    }
+    dropdown.appendChild(createOption("None", ""));
+    for (var fa in lfa) {
+        dropdown.appendChild(createOption(lfa[fa]));
+    }
 }
