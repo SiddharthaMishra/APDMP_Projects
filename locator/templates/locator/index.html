@@ -14,8 +14,8 @@
         <h1>APDMP Project Location</h1>   
     </div>
     <div id = "side"> 
-        <input type="radio" name="type" value="0" checked>Mandals
-        <input type="radio" name="type" value="1">Villages
+        <input type="radio"  name="type" onclick="changeRadio(this);" value="0" checked>Mandals
+        <input type="radio" name="type" onclick="changeRadio(this);" value="1">Villages
         <br><br><br>
         District: 
         <select name="district" id="district">
@@ -24,7 +24,7 @@
         Mandal: <select name="mandal" id="mandal">
             <option value="">None</option>
         </select><br><br>
-        Village: <select name="village" id="village">
+        Village: <select name="village" id="village" disabled>
             <option value="">None</option>
         </select> <br><br><br><br>
         LFA: <select name="lfa" id="lfa">
@@ -55,14 +55,12 @@
     
     var district_node = document.getElementById('district');
     district_node.onchange = function() {
-        console.log(this.value)
         populateMandals(districts[this.value]);
         populateVillages([]);
     };
 
     var mandal_node = document.getElementById('mandal');
     mandal_node.onchange = function() {
-        console.log("IN");
         var district_node_value = document.getElementById('district').value;
         populateVillages(districts[district_node_value][this.value]);
     };
@@ -74,9 +72,23 @@
         populateFA(lfas[this.value]);
     };
 
+    function changeRadio(rad) {
+        if (rad.value == '0') {
+            document.getElementById('village').disabled = true;
+            document.getElementById('village').value = "";
+        } else {
+            document.getElementById('village').disabled = false;
+        }
+    }
+
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBpnHNZ7rQNVICgFljR277UJ1gG7MNkais"></script>
+<script src="{% static "locator/maplabel-compiled.js" %}"></script>
+<script src="{% static "locator/maplabel.js" %}"></script>
+<script src="{% static "locator/map.js" %}"></script>
+<script>
+    google.maps.event.addDomListener(window, 'load', initMap);
 </script>
 
 
-<script src="{% static "locator/map.js" %}"></script>
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBpnHNZ7rQNVICgFljR277UJ1gG7MNkais&callback=initMap" 
-async defer></script>

@@ -6,5 +6,7 @@ app_name = 'locator'
 urlpatterns = [
     path('', views.index),
     path('getareas', views.get_geom),
-    path('getborder', views.get_border)
+    path('getborder', views.get_border),
+    path('getapdmpborder', views.get_APDMP_border),
+
 ]

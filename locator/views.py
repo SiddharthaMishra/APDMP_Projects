@@ -38,7 +38,7 @@ def index(request):
 
 	return render(request, "locator/index.html", {"to_send": to_send})
 			
-def get_geom(request):
+def get_geom2(request):
 
     request_type = request.POST['type']
     if request_type == '0':
@@ -48,8 +48,10 @@ def get_geom(request):
 
     if request.POST['fa']:
         areas = obj.objects.filter(fa=request.POST['fa'])    
-    else:
+    elif request.POST['lfa']:
         areas = obj.objects.filter(lfa=request.POST['lfa'])
+    else:
+        areas = obj.objects.all()
     
     if request_type != '0' and request.POST['village']:
         areas = areas.filter(name=request.POST['village'])
@@ -64,8 +66,42 @@ def get_geom(request):
     else:
         return HttpResponse("")
 
+def get_geom(request):
+
+    request_type = request.POST['type']
+    
+    obj = APDMP_Villages
+
+    if request.POST['fa']:
+        areas = obj.objects.filter(fa=request.POST['fa'])    
+    elif request.POST['lfa']:
+        areas = obj.objects.filter(lfa=request.POST['lfa'])
+    else:
+        areas = obj.objects.all()
+    
+    if request_type != '0' and request.POST['village']:
+        areas = areas.filter(name=request.POST['village'])
+    elif request.POST['mandal']:
+        areas = areas.filter(sub_distri=request.POST['mandal'])
+    elif request.POST['district']:
+        areas = areas.filter(district=request.POST['district'])
+
+    if request_type == '0':
+        areas = APDMP_Mandals.objects.filter(sub_distri__in = [a.sub_distri for a in areas])
+        to_send = serialize('geojson', areas, geometry_field='geom', fields=('sub_distri',))
+    else:
+        to_send = serialize('geojson', areas, geometry_field='geom', fields=('gp',))
+
+    if areas:
+        return HttpResponse(to_send, content_type="application/json")
+    else:
+        return HttpResponse("")
+
 def get_border(request):
     to_send = serialize('geojson', AP_Districts.objects.all(), geometry_field='geom')
     return HttpResponse(to_send, content_type="application/json")
 
+def get_APDMP_border(request):
+    to_send = serialize('geojson', APDMP_Districts.objects.all(), geometry_field='geom', fields=('district',))
+    return HttpResponse(to_send, content_type="application/json")
     
