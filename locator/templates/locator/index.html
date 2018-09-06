@@ -6,7 +6,6 @@
     <link rel="stylesheet" href="{% static "locator/index.css" %}" >
     <script src="{% static "locator/populateForm.js" %}"></script>
     <script src="{% static "locator/jquery-3.2.1.min.js" %}"></script>
-    <script src="{% static "locator/ajaxSetup.js" %}"></script>
 </head>
 
 <body>
@@ -80,6 +79,8 @@
             document.getElementById('village').disabled = false;
         }
     }
+
+    csrf_token = '{{csrf_token}}';
 
 </script>
 

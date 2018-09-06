@@ -18,6 +18,9 @@ function initMap() {
         url : "getborder",
         type : "POST",
         cache : false,
+        data: {
+            'csrfmiddlewaretoken': csrf_token,
+        },
         success : function(res){
             var dl = new google.maps.Data({map:map});
             dl.addGeoJson(res);
@@ -33,6 +36,9 @@ function initMap() {
     $.ajax({
         url : "getapdmpborder",
         type : "POST",
+        data: {
+            'csrfmiddlewaretoken': csrf_token,
+        },
         cache : false,
         success : function(res){
             var dl = new google.maps.Data({map:map});
@@ -88,6 +94,7 @@ function initMap() {
                 url : "getareas",
                 type : "POST",
                 data : {
+                    'csrfmiddlewaretoken': csrf_token,
                     type : document.querySelector('input[name="type"]:checked').value,
                     district,
                     mandal,
